@@ -1,0 +1,1406 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+
+    <link rel="shortcut icon" href="/images/favicon-b5574bf7.ico">
+
+    <link rel="canonical" href="https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth"/>
+
+
+    <meta name="description" content="You can use this guide to get a simple and practical understanding of how Spring&#39;s transaction management with the @Transactional annotation works."/>
+
+    <meta property="og:title" content="Spring Transaction Management: @Transactional In-Depth"/>
+    
+    <meta property="og:type" content="article"/>
+    <meta property="og:url" content="https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth"/>
+    <meta property="og:description" content="You can use this guide to get a simple and practical understanding of how Spring&#39;s transaction management with the @Transactional annotation works."/>
+    <meta property="og:image" content="https://www.marcobehler.com/images/guides/undraw_blooming_jtv6-e3ef5753.png"/>
+
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:creator" content="Marco Behler"/>
+    <meta name="twitter:site" content="@MarcoBehler"/>
+    <meta name="twitter:url" content="https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth"/>
+    <meta name="twitter:title" content="Spring Transaction Management: @Transactional In-Depth"/>
+    
+    <meta name="twitter:description" content="You can use this guide to get a simple and practical understanding of how Spring&#39;s transaction management with the @Transactional annotation works."/>
+    <meta name="twitter:image" content="https://www.marcobehler.com/images/guides/undraw_blooming_jtv6-e3ef5753.png"/>
+
+    
+    <title>Spring Transaction Management: @Transactional In-Depth</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shariff@3.3.0/dist/shariff.complete.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.4.6/css/flag-icon.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/stylesheets/custom-9005594b.css">
+
+    
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xtqL2EJ5uEjJFE/v31TkSQ" async></script>
+
+</head>
+
+<body>
+
+
+    <div class="container">
+        <header class="d-flex flex-wrap align -items-center justify-content-center justify-content-md-between py-3 mb-1 border-bottom">
+            <a href="/" class="d-flex align -items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none">
+                <img style="height: 32px;" src="https://www.marcobehler.com/images/marco_behler-black-dbe99f23.svg">
+            </a>
+
+            <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="/" class="nav-link px-2 link-dark">Home</a></li>
+                <li><a href="/store" class="nav-link px-2 link-dark">Store</a></li>
+                <li><a href="/marco-codes" class="nav-link px-2 link-dark">Marco Codes</a></li>
+                <li><a href="/about" class="nav-link px-2 link-dark">About</a></li>
+            </ul>
+
+            <div class="col-md-3 text-end">
+                <a href="/login" class="btn btn-outline-primary me-2">Login</a>
+            </div>
+        </header>
+    </div>
+
+    <main>
+        
+    <div class="container article">
+
+        <div class="row justify-content-center">
+            <div class="col-10 col-xl-7 mb-4 mx-auto">
+
+                <div class="text-center  ">
+
+                    
+                        <img class="img-fluid mb-3 w-50" style="max-height: 12rem;" itemprop="image"
+                             src="/images/guides/undraw_blooming_jtv6-c42afb12.svg" alt="Spring Transaction Management: @Transactional In-Depth - header image"/>
+                    
+
+                    <h1 class="fw-bold">Spring Transaction Management: @Transactional In-Depth</h1>
+
+                    
+
+                    <h6 class="mb-2" style="color: #777">Last updated on <span>June 03, 2022</span>
+                        - <a href="#commento" data-page-id="/guides/spring-transaction-management-unconventional-guide"></a>
+                    </h6>
+
+                    <a href="https://github.com/marcobehler/marcobehler-guides"  class="github-button btn mt-2" style="background-color: #ff691f; color: white;">
+                        Star me on GitHub → <span class="stargazers"></span>&nbsp;<i class="fas fa-star"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2">
+
+                <div class="sticky-top">
+                    <nav>
+                        <div class="list-group pt-0 mb-2 smaller" id="article-toc">
+
+                            <h6 class="sidebar-heading mb-1 mt-3">
+                                <span>Quick Links</span>
+                            </h6>
+
+                            <ul class="nav flex-column">
+                                <li class="nav-item"><a class="nav-link py-1"
+                                                                                       href="#_introduction">Introduction</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link py-1"
+                                                                                       href="#_how_plain_jdbc_transaction_management_works">How plain JDBC Transaction Management works</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link py-1"
+                                                                                       href="#spring-section">How Spring&#8217;s or Spring Boot&#8217;s Transaction Management works</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link py-1"
+                                                                                       href="#_how_spring_and_jpa_hibernate_transaction_management_works">How Spring and JPA / Hibernate Transaction Management works</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link py-1"
+                                                                                       href="#_fin">Fin</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link py-1"
+                                                                                       href="#_acknowledgements">Acknowledgements</a>
+                                </li>
+                            </ul>
+                            <a href="#" onclick="scrollToTop" class="text-muted small mt-3">↑ Top</a>
+                        </div>
+
+                    </nav>
+                </div>
+
+            </div>
+            <div class="col-md-8">
+                <p>You can use this guide to get a simple and practical understanding of how Spring&#39;s transaction management with the @Transactional annotation works.</p>
+                <p>The only prerequisite? You need to have a rough idea about ACID, i.e. what database transactions are and why to use them. Also, distributed transactions or reactive transactions are not covered here, though the general principles, in terms of Spring, still apply.</p>
+
+                <div class="sect1">
+<h2 id="_introduction">Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide you are going to learn about the main pillars of <a href="https://www.marcobehler.com/guides/spring-framework">Spring core&#8217;s</a> <em>transaction abstraction framework</em> (a confusing term, isn&#8217;t it?) - described with a lot of code examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code><em>@Transactional</em></code> (Declarative Transaction Management) vs Programmatic Transaction Management.</p>
+</li>
+<li>
+<p>Physical vs Logical transactions.</p>
+</li>
+<li>
+<p>Spring <code><em>@Transactional</em></code> and JPA / Hibernate integration.</p>
+</li>
+<li>
+<p>Spring <code><em>@Transactional</em></code> and Spring Boot or Spring MVC integration.</p>
+</li>
+<li>
+<p>Rollbacks, Proxies, Common Pitfalls and much more.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As opposed to, say, the <a href="https://docs.spring.io/spring-framework/docs/5.3.x/reference/html/data-access.html#transaction-declarative">official Spring documentation</a>, this guide won&#8217;t confuse you by diving right into the topic <em>Spring-first</em>.</p>
+</div>
+<div class="paragraph">
+<p>Instead you are going to learn Spring transaction management the <em>unconventional way</em>: From the ground up, step by step. This means, starting with plain old <a href="https://en.wikipedia.org/wiki/Java_Database_Connectivity">JDBC transaction</a> management.</p>
+</div>
+<div class="paragraph">
+<p>Why?</p>
+</div>
+<div class="paragraph">
+<p>Because everything that Spring does is <em>based on</em> these very JDBC basics. And you&#8217;ll save a ton of time with Spring&#8217;s @Transactional annotation later, if you grasp these basics.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_plain_jdbc_transaction_management_works">How plain JDBC Transaction Management works</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you are thinking of skipping this section, without knowing JDBC transactions inside-out: <strong>don&#8217;t</strong>.</p>
+</div>
+<div class="sect2">
+<h3 id="_how_to_start_commit_or_rollback_jdbc_transactions">How to start, commit or rollback JDBC transactions</h3>
+<div class="paragraph">
+<p>The first important take-away is this: It does not matter if you are using Spring&#8217;s @Transactional annotation, plain Hibernate, jOOQ or any other database library.</p>
+</div>
+<div class="paragraph">
+<p>In the end, they <em>all do the very same thing</em> to open and close (let&#8217;s call that 'manage') database transactions. Plain JDBC transaction management code looks like this:</p>
+</div>
+<div id="plain-jdbc-example" class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kn">import</span> <span class="nn">java.sql.Connection</span><span class="o">;</span>
+
+<span class="nc">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span> // <b class="conum">(1)</b>
+
+<span class="k">try</span> <span class="o">(</span><span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">connection</span><span class="o">.</span><span class="na">setAutoCommit</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span> // <b class="conum">(2)</b>
+    <span class="c1">// execute some SQL statements...</span>
+    <span class="n">connection</span><span class="o">.</span><span class="na">commit</span><span class="o">();</span> // <b class="conum">(3)</b>
+
+<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">SQLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">connection</span><span class="o">.</span><span class="na">rollback</span><span class="o">();</span> // <b class="conum">(4)</b>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>You need a connection to the database to start transactions.
+<a href="https://docs.oracle.com/javase/7/docs/api/java/sql/DriverManager.html">DriverManager.getConnection(url, user, password)</a> would work as well, though in most enterprise-y applications you will have a data source configured and get connections from that.</p>
+</li>
+<li>
+<p>This is the <strong>only</strong> way to 'start' a database transaction in Java, even though the name might sound a bit off.
+<em>setAutoCommit(true)</em> makes sure that every single SQL statement automatically gets wrapped in its own transaction and <em>setAutoCommit(false)</em> is the opposite: You are the master of the transaction(s) and you&#8217;ll need to start calling <code><em>commit</em></code> and friends. Do note, the <code><em>autoCommit</em></code> flag is valid for the whole time your connection is open, which means you only need to call the method once, not repeatedly.</p>
+</li>
+<li>
+<p>Let&#8217;s commit our transaction&#8230;&#8203;</p>
+</li>
+<li>
+<p>Or, rollback our changes, if there was an exception.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Yes, these 4 lines are (oversimplified) everything that Spring does whenever you are using the @Transactional annotation.
+In the next chapter you&#8217;ll find out how that works. But before we go there, there&#8217;s a tiny bit more you need to learn.</p>
+</div>
+<div class="paragraph">
+<p>(A quick note for smarty-pants: Connection pool libraries like <a href="https://github.com/brettwooldridge/HikariCP">HikariCP</a> might toggle the autocommit mode automatically for you, depending on the configuration. But that is an advanced topic.)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_to_use_jdbc_isolation_levels_and_savepoints">How to use JDBC isolation levels and savepoints</h3>
+<div class="paragraph">
+<p>If you already played with Spring&#8217;s @Transactional annotation you might have encountered something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Transactional</span><span class="o">(</span><span class="n">propagation</span><span class="o">=</span><span class="nc">TransactionDefinition</span><span class="o">.</span><span class="na">NESTED</span><span class="o">,</span>
+               <span class="n">isolation</span><span class="o">=</span><span class="nc">TransactionDefinition</span><span class="o">.</span><span class="na">ISOLATION_READ_UNCOMMITTED</span><span class="o">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We will cover nested Spring transactions and isolation levels later in more detail, but again it helps to know that these parameters all boil down to the following, basic JDBC code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kn">import</span> <span class="nn">java.sql.Connection</span><span class="o">;</span>
+
+<span class="c1">// isolation=TransactionDefinition.ISOLATION_READ_UNCOMMITTED</span>
+
+<span class="n">connection</span><span class="o">.</span><span class="na">setTransactionIsolation</span><span class="o">(</span><span class="nc">Connection</span><span class="o">.</span><span class="na">TRANSACTION_READ_UNCOMMITTED</span><span class="o">);</span> // <b class="conum">(1)</b>
+
+<span class="c1">// propagation=TransactionDefinition.NESTED</span>
+
+<span class="nc">Savepoint</span> <span class="n">savePoint</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="na">setSavepoint</span><span class="o">();</span> // <b class="conum">(2)</b>
+<span class="o">...</span>
+<span class="n">connection</span><span class="o">.</span><span class="na">rollback</span><span class="o">(</span><span class="n">savePoint</span><span class="o">);</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>This is how Spring sets isolation levels on a database connection. Not exactly rocket science, is it?</p>
+</li>
+<li>
+<p>Nested transactions in Spring are just JDBC / database savepoints.
+If you don&#8217;t know what a savepoint is, have a look at <a href="https://docs.oracle.com/javase/tutorial/jdbc/basics/transactions.html">this tutorial</a>, for example.
+Note that savepoint support is dependent on your JDBC driver/database.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="spring-section">How Spring&#8217;s or Spring Boot&#8217;s Transaction Management works</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As you now have a good JDBC transaction understanding, let&#8217;s have a look at how plain, <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html">core Spring</a> manages transactions. Everything here applies 1:1 to <a href="https://spring.io/projects/spring-boot">Spring Boot</a> and Spring MVC, but <a href="#transactional-spring-boot">more about that</a> a bit later..</p>
+</div>
+<div class="paragraph">
+<p>What actually <em>is</em> Spring&#8217;s transaction management or its (rather confusingly named) transaction abstraction framework?</p>
+</div>
+<div class="paragraph">
+<p>Remember, transaction management simply means: How does Spring start, commit or rollback JDBC transactions? Does this sound in any way familiar from above?</p>
+</div>
+<div class="paragraph">
+<p>Here&#8217;s the catch: Whereas with plain JDBC you only have one way (setAutocommit(false)) to manage transactions, Spring offers you many different, more convenient ways to achieve the same.</p>
+</div>
+<div class="sect2">
+<h3 id="_how_to_use_springs_programmatic_transaction_management">How to use Spring&#8217;s Programmatic Transaction Management?</h3>
+<div class="paragraph">
+<p>The first, but rather sparingly used way to define transactions in Spring is programmatically: Either through a TransactionTemplate or directly through the PlatformTransactionManager. Code-wise, it looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+    <span class="nd">@Autowired</span>
+    <span class="kd">private</span> <span class="nc">TransactionTemplate</span> <span class="n">template</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nc">Long</span> <span class="nf">registerUser</span><span class="o">(</span><span class="nc">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Long</span> <span class="n">id</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">status</span> <span class="o">-&gt;</span>  <span class="o">{</span>
+            <span class="c1">// execute some SQL that e.g.</span>
+            <span class="c1">// inserts the user into the db and returns the autogenerated id</span>
+            <span class="k">return</span> <span class="n">id</span><span class="o">;</span>
+        <span class="o">});</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Compared with the <a href="#plain-jdbc-example">plain JDBC example</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You do not have to mess with opening or closing database connections yourself (try-finally). Instead you use <a href="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/transaction/support/TransactionCallback.html">Transaction Callbacks</a>.</p>
+</li>
+<li>
+<p>You also do not have to catch SQLExceptions, as Spring converts these exceptions to runtime exceptions for you.</p>
+</li>
+<li>
+<p>And you have better integration into the Spring ecosystem. TransactionTemplate will use a TransactionManager internally, which will use a data source. All are beans that you have to specify in your Spring context configuration, but then don&#8217;t have to worry about anymore later on.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>While this counts as a minor improvement, programmatic transaction management is not what Spring&#8217;s transaction framework mainly is about. Instead, it&#8217;s all about <em>declarative transaction management</em>. Let&#8217;s find out what that is.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_to_use_springs_xml_declarative_transaction_management">How to use Spring&#8217;s XML Declarative Transaction Management?</h3>
+<div class="paragraph">
+<p>Back in the day, when XML configuration was the norm for Spring projects, you could configure transactions directly in XML. Apart from a couple of legacy, enterprise projects, you won&#8217;t find this approach anymore in the wild, as it has been superseded with the much simpler @Transactional annotation.</p>
+</div>
+<div class="paragraph">
+<p>We will not go into detail on XML configuration in this guide, but you can use this example as a starting point to dive deeper into it - if needed (taken straight from the <a href="https://docs.spring.io/spring/docs/4.2.x/spring-framework-reference/html/transaction.html#transaction-declarative">official Spring documentation</a>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="xml"><span class="c">&lt;!-- the transactional advice (what 'happens'; see the &lt;aop:advisor/&gt; bean below) --&gt;</span>
+    <span class="nt">&lt;tx:advice</span> <span class="na">id=</span><span class="s">"txAdvice"</span> <span class="na">transaction-manager=</span><span class="s">"txManager"</span><span class="nt">&gt;</span>
+        <span class="c">&lt;!-- the transactional semantics... --&gt;</span>
+        <span class="nt">&lt;tx:attributes&gt;</span>
+            <span class="c">&lt;!-- all methods starting with 'get' are read-only --&gt;</span>
+            <span class="nt">&lt;tx:method</span> <span class="na">name=</span><span class="s">"get*"</span> <span class="na">read-only=</span><span class="s">"true"</span><span class="nt">/&gt;</span>
+            <span class="c">&lt;!-- other methods use the default transaction settings (see below) --&gt;</span>
+            <span class="nt">&lt;tx:method</span> <span class="na">name=</span><span class="s">"*"</span><span class="nt">/&gt;</span>
+        <span class="nt">&lt;/tx:attributes&gt;</span>
+    <span class="nt">&lt;/tx:advice&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You are specifying an <a href="https://docs.spring.io/spring/docs/4.3.x/spring-framework-reference/htmlsingle/#aop-introduction">AOP advice</a> (Aspect Oriented Programming) with the above XML block, that you can then apply to your UserService bean like so:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="xml"><span class="nt">&lt;aop:config&gt;</span>
+    <span class="nt">&lt;aop:pointcut</span> <span class="na">id=</span><span class="s">"userServiceOperation"</span> <span class="na">expression=</span><span class="s">"execution(* x.y.service.UserService.*(..))"</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;aop:advisor</span> <span class="na">advice-ref=</span><span class="s">"txAdvice"</span> <span class="na">pointcut-ref=</span><span class="s">"userServiceOperation"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/aop:config&gt;</span>
+
+<span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">"userService"</span> <span class="na">class=</span><span class="s">"x.y.service.UserService"</span><span class="nt">/&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your UserService bean would then look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="nc">Long</span> <span class="nf">registerUser</span><span class="o">(</span><span class="nc">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// execute some SQL that e.g.</span>
+        <span class="c1">// inserts the user into the db and retrieves the autogenerated id</span>
+        <span class="k">return</span> <span class="n">id</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From a Java code perspective, this declarative transaction approach looks a lot simpler than the programmatic approach. But it leads to a lot of complicated, verbose XML, with the pointcut and advisor configurations.</p>
+</div>
+<div class="paragraph">
+<p>So, this leads to the question: Is there a better way for declarative transaction management instead of XML? Yes, there is: The @Transactional annotation.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_to_use_springs_transactional_annotation_declarative_transaction_management">How to use Spring&#8217;s @Transactional annotation ( Declarative Transaction Management )</h3>
+<div class="paragraph">
+<p>Now let&#8217;s have a look at what modern Spring transaction management usually looks like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+    <span class="nd">@Transactional</span>
+    <span class="kd">public</span> <span class="nc">Long</span> <span class="nf">registerUser</span><span class="o">(</span><span class="nc">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+       <span class="c1">// execute some SQL that e.g.</span>
+        <span class="c1">// inserts the user into the db and retrieves the autogenerated id</span>
+        <span class="c1">// userDao.save(user);</span>
+        <span class="k">return</span> <span class="n">id</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>How is this possible? There is no more XML configuration and there&#8217;s also no other code needed. Instead, you now need to do two things:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Make sure that your Spring Configuration is annotated with the @EnableTransactionManagement annotation (In Spring Boot this will be done <em>automatically for you</em>).</p>
+</li>
+<li>
+<p>Make sure you specify a transaction manager in your Spring Configuration (this you need to do anyway).</p>
+</li>
+<li>
+<p>And then Spring is smart enough to transparently handle transactions for you: Any bean&#8217;s <em>public</em> method you annotate with the @Transactional annotation, will execute <em>inside a database transaction</em> (note: there are some <a href="#transactional-pitfalls">pitfalls</a>).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>So, to get the @Transactional annotation working, all you need to do is this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Configuration</span>
+<span class="nd">@EnableTransactionManagement</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MySpringConfig</span> <span class="o">{</span>
+
+    <span class="nd">@Bean</span>
+    <span class="kd">public</span> <span class="nc">PlatformTransactionManager</span> <span class="nf">txManager</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">yourTxManager</span><span class="o">;</span> <span class="c1">// more on that later</span>
+    <span class="o">}</span>
+
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, when I say Spring transparently handles transactions for you. What does that <em>really mean</em>?</p>
+</div>
+<div class="paragraph">
+<p>Armed with the knowledge from the <a href="#plain-jdbc-example">JDBC transaction example</a>, the @Transactional UserService code above translates (simplified) directly to this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="nc">Long</span> <span class="nf">registerUser</span><span class="o">(</span><span class="nc">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span> // <b class="conum">(1)</b>
+        <span class="k">try</span> <span class="o">(</span><span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">setAutoCommit</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span> // <b class="conum">(1)</b>
+
+            <span class="c1">// execute some SQL that e.g.</span>
+            <span class="c1">// inserts the user into the db and retrieves the autogenerated id</span>
+            <span class="c1">// userDao.save(user); &lt;</span><b class="conum">(2)</b>
+
+            <span class="n">connection</span><span class="o">.</span><span class="na">commit</span><span class="o">();</span> // <b class="conum">(1)</b>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">SQLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">connection</span><span class="o">.</span><span class="na">rollback</span><span class="o">();</span> // <b class="conum">(1)</b>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>This is all just standard opening and closing of a JDBC connection.
+That&#8217;s what Spring&#8217;s transactional annotation does for you automatically, without you having to write it explicitly.</p>
+</li>
+<li>
+<p>This is your own code, saving the user through a DAO or something similar.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This example might look a bit <em>magical</em>, but let&#8217;s have a look at how Spring inserts this connection code for you.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cglib_jdk_proxies_transactional_under_the_covers">CGlib &amp; JDK Proxies - @Transactional under the covers</h3>
+<div class="paragraph">
+<p>Spring cannot really rewrite your Java class, like I did above, to insert the connection code (unless you are using advanced techniques like bytecode weaving, but we are ignoring that for now).</p>
+</div>
+<div class="paragraph">
+<p>Your registerUser() method really just calls userDao.save(user), there&#8217;s no way to change that on the fly.</p>
+</div>
+<div class="paragraph">
+<p>But Spring has an advantage.
+At its core, it is an IoC container.
+It instantiates a UserService for you and makes sure to autowire that UserService into any other bean that needs a UserService.</p>
+</div>
+<div class="paragraph">
+<p>Now whenever you are using @Transactional on a bean, Spring uses a tiny trick. It does not just instantiate a UserService, but also a transactional <em>proxy</em> of that UserService.</p>
+</div>
+<div class="paragraph">
+<p>It does that through a method called <em>proxy-through-subclassing</em> with the help of the <a href="https://github.com/cglib/cglib">Cglib library</a>.
+There are also other ways to construct proxies (like <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/reflection/proxy.html">Dynamic JDK proxies</a>), but let&#8217;s leave it at that for the moment.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s see proxies in action in this picture:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/document1.png" alt="document1" width="940" height="196">
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see from that diagram, the proxy has one job.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Opening and closing database connections/transactions.</p>
+</li>
+<li>
+<p>And then delegating to the <em>real UserService</em>, the one you wrote.</p>
+</li>
+<li>
+<p>And other beans, like your UserRestController will never know that they are talking to a proxy, and not the <em>real</em> thing.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Quick Exam</strong></p>
+</div>
+<div class="paragraph">
+<p>Have a look at the following source code and tell me what <em>type</em> of UserService Spring automatically constructs, assuming it is marked with @Transactional or has a @Transactional method.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Configuration</span>
+<span class="nd">@EnableTransactionManagement</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">MyAppConfig</span> <span class="o">{</span>
+
+    <span class="nd">@Bean</span>
+    <span class="kd">public</span> <span class="nc">UserService</span> <span class="nf">userService</span><span class="o">()</span> <span class="o">{</span>  // <b class="conum">(1)</b>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">UserService</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Correct.
+Spring constructs a dynamic CGLib proxy of your UserService class here that can open and close database transactions for you. You or any other beans won&#8217;t even notice that it is not <em>your</em> UserService, but a proxy wrapping your UserService.</p>
+</li>
+</ol>
+</div>
+<div class="alert alert-warning my-4" role="alert" style="background-color: #fffe9a">
+    <div class="row align-items-center p-3">
+        <div class="col-12 col-md-9">
+            <p><i class="fas fa-star" aria-hidden="true" style="color: #ffbe00;"></i>&nbsp;<span
+                    class="font-weight-bold">The Confident Spring Professional</span></p>
+            <p class="text-dark">If you want to easily get a deep and practical understanding of the entire Spring Ecosystem or simply refresh your Spring knowledge: I have written a course for you.</p><p class="text-dark">Interested in trying out the full first module?</p>
+            </p>
+        </div>
+       <div class="col-12 col-md-3 "><a href="https://www.marcobehler.com/courses/spring-professional"  class="btn btn-secondary btn-small active text-white" role="button" >Learn More</a>
+       </div>
+    </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_for_what_do_you_need_a_transaction_manager_like_platformtransactionmanager">For what do you need a Transaction Manager (like PlatformTransactionManager)?</h3>
+<div class="paragraph">
+<p>Now there&#8217;s only one crucial piece of information missing, even though we have mentioned it a couple of times already.</p>
+</div>
+<div class="paragraph">
+<p>Your UserService gets proxied on the fly, and the proxy manages transactions for you. But it is not the proxy itself handling all this transactional state (open, commit, close), the proxy delegates that work to a <em>transaction manager</em>.</p>
+</div>
+<div class="paragraph">
+<p>Spring offers you a PlatformTransactionManager / TransactionManager interface, which, by default, comes with a couple of handy implementations. One of them is the datasource transaction manager.</p>
+</div>
+<div class="paragraph">
+<p>It does exactly what you did so far to manage transactions, but first, let&#8217;s look at the needed Spring configuration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Bean</span>
+<span class="kd">public</span> <span class="nc">DataSource</span> <span class="nf">dataSource</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nf">MysqlDataSource</span><span class="o">();</span> // <b class="conum">(1)</b>
+<span class="o">}</span>
+
+<span class="nd">@Bean</span>
+<span class="kd">public</span> <span class="nc">PlatformTransactionManager</span> <span class="nf">txManager</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nf">DataSourceTransactionManager</span><span class="o">(</span><span class="n">dataSource</span><span class="o">());</span> // <b class="conum">(2)</b>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>You create a database-specific or connection-pool specific datasource here. MySQL is being used for this example.</p>
+</li>
+<li>
+<p>Here, you create your transaction manager, which needs a data source to be able to manage transactions.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Simple as. All transaction managers then have methods like "doBegin" (for starting a transaction) or "doCommit", which look like this - taken straight from Spring&#8217;s source code and simplified a bit:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DataSourceTransactionManager</span> <span class="kd">implements</span> <span class="nc">PlatformTransactionManager</span> <span class="o">{</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">doBegin</span><span class="o">(</span><span class="nc">Object</span> <span class="n">transaction</span><span class="o">,</span> <span class="nc">TransactionDefinition</span> <span class="n">definition</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Connection</span> <span class="n">newCon</span> <span class="o">=</span> <span class="n">obtainDataSource</span><span class="o">().</span><span class="na">getConnection</span><span class="o">();</span>
+        <span class="c1">// ...</span>
+        <span class="n">con</span><span class="o">.</span><span class="na">setAutoCommit</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+        <span class="c1">// yes, that's it!</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">doCommit</span><span class="o">(</span><span class="nc">DefaultTransactionStatus</span> <span class="n">status</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// ...</span>
+        <span class="nc">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="na">getTransaction</span><span class="o">().</span><span class="na">getConnectionHolder</span><span class="o">().</span><span class="na">getConnection</span><span class="o">();</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">con</span><span class="o">.</span><span class="na">commit</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">SQLException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">TransactionSystemException</span><span class="o">(</span><span class="s">"Could not commit JDBC transaction"</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So, the datasource transaction manager uses <em>exactly</em> the same code that you saw in the JDBC section, when managing transactions.</p>
+</div>
+<div class="paragraph">
+<p>With this in mind, let&#8217;s extend our picture from above:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/document2.png" alt="document2" width="1210" height="210">
+</div>
+</div>
+<div class="paragraph">
+<p>To sum things up:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>If Spring detects the @Transactional annotation on a bean, it creates a dynamic proxy of that bean.</p>
+</li>
+<li>
+<p>The proxy has access to a transaction manager and will ask it to open and close transactions / connections.</p>
+</li>
+<li>
+<p>The transaction manager itself will simply do what you did in the plain Java section: Manage a good, old JDBC connection.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_is_the_difference_between_physical_and_logical_transactions">What is the difference between physical and logical transactions?</h3>
+<div class="paragraph">
+<p>Imagine the following two transactional classes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+    <span class="nd">@Autowired</span>
+    <span class="kd">private</span> <span class="nc">InvoiceService</span> <span class="n">invoiceService</span><span class="o">;</span>
+
+    <span class="nd">@Transactional</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">invoice</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">invoiceService</span><span class="o">.</span><span class="na">createPdf</span><span class="o">();</span>
+        <span class="c1">// send invoice as email, etc.</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">InvoiceService</span> <span class="o">{</span>
+
+    <span class="nd">@Transactional</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">createPdf</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// ...</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>UserService has a transactional invoice() method. Which calls another transactional method, createPdf() on the InvoiceService.</p>
+</div>
+<div class="paragraph">
+<p>Now in terms of database transactions, this should really just be <strong>one</strong> database transaction. (Remember: <em>getConnection(). setAutocommit(false). commit().</em>) Spring calls this <em>physical transaction</em>, even though this might sound a bit confusing at first.</p>
+</div>
+<div class="paragraph">
+<p>From Spring&#8217;s side however, there&#8217;s two <em>logical transactions</em> happening: First in UserService, the other one in InvoiceService. Spring has to be smart enough to know that both @Transactional methods, should use the same <em>underlying, physical</em> database transaction.</p>
+</div>
+<div class="paragraph">
+<p>How would things be different, with the following change to InvoiceService?</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">InvoiceService</span> <span class="o">{</span>
+
+    <span class="nd">@Transactional</span><span class="o">(</span><span class="n">propagation</span> <span class="o">=</span> <span class="nc">Propagation</span><span class="o">.</span><span class="na">REQUIRES_NEW</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">createPdf</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// ...</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Changing the propagation mode to requires_new is telling Spring that createPDF() needs to execute in its own transaction, independent of any other, already existing transaction. Thinking back to the plain Java section of this guide, did you see a way to "split" a transaction in half? Neither did I.</p>
+</div>
+<div class="paragraph">
+<p>Which basically means your code will open <strong>two</strong> (physical) connections/transactions to the database. (Again: <em>getConnection() x2. setAutocommit(false) x2. commit() x2</em>) Spring now has to be smart enough that the <em>two logical transactional</em> pieces (invoice()/createPdf()) now also map to two <em>different, physical</em> database transactions.</p>
+</div>
+<div class="paragraph">
+<p>So, to sum things up:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Physical Transactions: Are your actual JDBC transactions.</p>
+</li>
+<li>
+<p>Logical Transactions: Are the (potentially nested) @Transactional-annotated (Spring) methods.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This leads us to covering propagation modes in more detail.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_are_transactional_propagation_levels_used_for">What are @Transactional Propagation Levels used for?</h3>
+<div class="paragraph">
+<p>When looking at the Spring source code, you&#8217;ll find a variety of propagation levels or modes that you can plug into the @Transactional method.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java">  <span class="nd">@Transactional</span><span class="o">(</span><span class="n">propagation</span> <span class="o">=</span> <span class="nc">Propagation</span><span class="o">.</span><span class="na">REQUIRED</span><span class="o">)</span>
+
+  <span class="c1">// or</span>
+
+  <span class="nd">@Transactional</span><span class="o">(</span><span class="n">propagation</span> <span class="o">=</span> <span class="nc">Propagation</span><span class="o">.</span><span class="na">REQUIRES_NEW</span><span class="o">)</span>
+  <span class="c1">// etc</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The full list:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>REQUIRED</p>
+</li>
+<li>
+<p>SUPPORTS</p>
+</li>
+<li>
+<p>MANDATORY</p>
+</li>
+<li>
+<p>REQUIRES_NEW</p>
+</li>
+<li>
+<p>NOT_SUPPORTED</p>
+</li>
+<li>
+<p>NEVER</p>
+</li>
+<li>
+<p>NESTED</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Exercise:</strong></p>
+</div>
+<div class="paragraph">
+<p>In the plain Java section, I showed you <em>everything</em> that JDBC can do when it comes to transactions. Take a minute to think about what every single Spring propagation mode at the end <em>REALLY</em> does to your datasource or rather, your JDBC connection.</p>
+</div>
+<div class="paragraph">
+<p>Then have a look at the following answers.</p>
+</div>
+<div class="paragraph">
+<p><strong>Answers:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Required (default)</strong>: My method needs a transaction, either open one for me or use an existing one &#8594; <em>getConnection(). setAutocommit(false). commit()</em>.</p>
+</li>
+<li>
+<p><strong>Supports</strong>: I don&#8217;t really care if a transaction is open or not, i can work either way &#8594; nothing to do with JDBC</p>
+</li>
+<li>
+<p><strong>Mandatory</strong>: I&#8217;m not going to open up a transaction myself, but I&#8217;m going to cry if no one else opened one up &#8594; nothing to do with JDBC</p>
+</li>
+<li>
+<p><strong>Require_new:</strong> I want my completely own transaction &#8594; <em>getConnection(). setAutocommit(false). commit()</em>.</p>
+</li>
+<li>
+<p><strong>Not_Supported:</strong> I really don&#8217;t like transactions, I will even try and suspend a current, running transaction &#8594; nothing to do with JDBC</p>
+</li>
+<li>
+<p><strong>Never:</strong> I&#8217;m going to cry if someone else started up a transaction &#8594; nothing to do with JDBC</p>
+</li>
+<li>
+<p><strong>Nested:</strong> It sounds so complicated, but we are just talking savepoints! &#8594; <em>connection.setSavepoint()</em></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As you can see, most propagation modes really have nothing to do with the database or JDBC, but more with how you structure your program with Spring and how/when/where Spring expects transactions to be there.</p>
+</div>
+<div class="paragraph">
+<p>Look at this example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+     <span class="nd">@Transactional</span><span class="o">(</span><span class="n">propagation</span> <span class="o">=</span> <span class="nc">Propagation</span><span class="o">.</span><span class="na">MANDATORY</span><span class="o">)</span>
+     <span class="kd">public</span> <span class="kt">void</span> <span class="nf">myMethod</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// execute some sql</span>
+     <span class="o">}</span>
+
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, Spring will <em>expect</em> a transaction to be open, whenever you call myMethod() of the UserService class. It <em>does not</em> open one itself, instead, if you call that method without a pre-existing transaction, Spring will throw an exception. Keep this in mind as additional points for "logical transaction handling".</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_what_are_transactional_isolation_levels_used_for">What are @Transactional Isolation Levels used for?</h3>
+<div class="paragraph">
+<p>This is almost a trick question at this point, but what happens when you configure the @Transactional annotation like so?</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Transactional</span><span class="o">(</span><span class="n">isolation</span> <span class="o">=</span> <span class="nc">Isolation</span><span class="o">.</span><span class="na">REPEATABLE_READ</span><span class="o">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Yes, it does simply lead to this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="n">connection</span><span class="o">.</span><span class="na">setTransactionIsolation</span><span class="o">(</span><span class="nc">Connection</span><span class="o">.</span><span class="na">TRANSACTION_REPEATABLE_READ</span><span class="o">);</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Database isolation levels are, however, a complex topic, and you should take some time to fully grasp them. A good start is the official Postgres Documentation and their section on <a href="https://www.postgresql.org/docs/9.5/transaction-iso.html">isolation levels</a>.</p>
+</div>
+<div class="paragraph">
+<p>Also note, that when it comes to switching isolation levels <em>during</em> a transaction, you <strong>must</strong> make sure to consult with your JDBC driver/database to understand which scenarios are supported and which not.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="transactional-pitfalls">The most common @Transactional pitfall</h3>
+<div class="paragraph">
+<p>There is one pitfall that Spring beginners usually run into. Have a look at the following code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+    <span class="nd">@Transactional</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">invoice</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">createPdf</span><span class="o">();</span>
+        <span class="c1">// send invoice as email, etc.</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Transactional</span><span class="o">(</span><span class="n">propagation</span> <span class="o">=</span> <span class="nc">Propagation</span><span class="o">.</span><span class="na">REQUIRES_NEW</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">createPdf</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// ...</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You have a UserService class with a transactional invoice method. Which calls createPDF(), which is also transactional.</p>
+</div>
+<div class="paragraph">
+<p>How many physical transactions would you expect to be open, once someone calls invoice()?</p>
+</div>
+<div class="paragraph">
+<p>Nope, the answer is not two, but one. Why?</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s go back to the proxies' section of this guide. Spring creates that transactional UserService proxy for you, but once you are inside the UserService class and call other inner methods, there is no more proxy involved. This means, no new transaction for you.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s have a look at it with a picture:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/document3.png" alt="document3" width="940" height="196">
+</div>
+</div>
+<div class="paragraph">
+<p>There&#8217;s some tricks (like <a href="https://stackoverflow.com/questions/43280460/spring-self-injection-for-transactions/43282215">self-injection</a>), which you can use to get around this limitation. But the main takeaway is: always keep the proxy transaction boundaries in mind.</p>
+</div>
+<div class="alert alert-warning my-4" role="alert" style="background-color: #fffe9a">
+    <div class="row align-items-center p-3">
+        <div class="col-12 col-md-9">
+            <p><i class="fas fa-star" aria-hidden="true" style="color: #ffbe00;"></i>&nbsp;<span
+                    class="font-weight-bold">The Confident Spring Professional</span></p>
+            <p class="text-dark">If you want to easily get a deep and practical understanding of the entire Spring Ecosystem or simply refresh your Spring knowledge: I have written a course for you.</p><p class="text-dark">Interested in trying out the full first module?</p>
+            </p>
+        </div>
+       <div class="col-12 col-md-3 "><a href="https://www.marcobehler.com/courses/spring-professional"  class="btn btn-secondary btn-small active text-white" role="button" >Learn More</a>
+       </div>
+    </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="transactional-spring-boot">How to use @Transactional with Spring Boot or Spring MVC</h3>
+<div class="paragraph">
+<p>So far, we have only talked about plain, core Spring. But what about Spring Boot? Or Spring Web MVC? Do they handle transactions any differently?</p>
+</div>
+<div class="paragraph">
+<p>The short answer is: No.</p>
+</div>
+<div class="paragraph">
+<p>With either frameworks (or rather: <em>all frameworks</em> in the Spring ecosystem), you will <em>always</em> use the <code><em>@Transactional</em></code> annotation, combined with a transaction manager and the @EnableTransactionManagement annotation. There is no other way.</p>
+</div>
+<div class="paragraph">
+<p>The only difference with Spring Boot is, however, that it automatically sets the <code><em>@EnableTransactionManagement</em></code> annotation and creates a <code><em>PlatformTransactionManager</em></code> for you - with its JDBC auto-configurations. Learn more about <a href="https://www.marcobehler.com/courses/27-spring-core-masterclass">auto-configurations here</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_spring_handles_rollbacks_and_default_rollback_policies">How Spring handles rollbacks (and default rollback policies)</h3>
+<div class="paragraph">
+<p>The section on Spring rollbacks will be handled in the next revision of this guide.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_spring_and_jpa_hibernate_transaction_management_works">How Spring and JPA / Hibernate Transaction Management works</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_the_goal_syncing_springs_transactional_and_hibernate_jpa">The goal: Syncing Spring&#8217;s @Transactional and Hibernate / JPA</h3>
+<div class="paragraph">
+<p>At some point, you will want your Spring application to integrate with another database library, such as <a href="https://hibernate.org/">Hibernate</a> (a popular JPA-implementation) or <a href="https://www.jooq.org">Jooq</a> etc.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s take plain Hibernate as an example (note: it does not matter if you are using Hibernate directly,or Hibernate via JPA).</p>
+</div>
+<div class="paragraph">
+<p>Rewriting the UserService from before to Hibernate would look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+    <span class="nd">@Autowired</span>
+    <span class="kd">private</span> <span class="nc">SessionFactory</span> <span class="n">sessionFactory</span><span class="o">;</span> // <b class="conum">(1)</b>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">registerUser</span><span class="o">(</span><span class="nc">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+
+        <span class="nc">Session</span> <span class="n">session</span> <span class="o">=</span> <span class="n">sessionFactory</span><span class="o">.</span><span class="na">openSession</span><span class="o">();</span> // <b class="conum">(2)</b>
+
+        <span class="c1">// lets open up a transaction. remember setAutocommit(false)!</span>
+        <span class="n">session</span><span class="o">.</span><span class="na">beginTransaction</span><span class="o">();</span>
+
+        <span class="c1">// save == insert our objects</span>
+        <span class="n">session</span><span class="o">.</span><span class="na">save</span><span class="o">(</span><span class="n">user</span><span class="o">);</span>
+
+        <span class="c1">// and commit it</span>
+        <span class="n">session</span><span class="o">.</span><span class="na">getTransaction</span><span class="o">().</span><span class="na">commit</span><span class="o">();</span>
+
+        <span class="c1">// close the session == our jdbc connection</span>
+        <span class="n">session</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>This is a plain, old Hibernate SessionFactory, the entry-point for all Hibernate queries.</p>
+</li>
+<li>
+<p>Manually managing sessions (read: database connections) and transactions with Hibernate&#8217;s API.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>There is one huge problem with the above code, however:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Hibernate would not know about Spring&#8217;s @Transactional annotation.</p>
+</li>
+<li>
+<p>Spring&#8217;s @Transactional would not know anything about Hibernate&#8217;s transaction.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>But we&#8217;d actually <em>love</em> for Spring and Hibernate to integrate seamlessly, meaning that they know about each others' transactions.</p>
+</div>
+<div class="paragraph">
+<p>In plain code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserService</span> <span class="o">{</span>
+
+    <span class="nd">@Autowired</span>
+    <span class="kd">private</span> <span class="nc">SessionFactory</span> <span class="n">sessionFactory</span><span class="o">;</span> // <b class="conum">(1)</b>
+
+    <span class="nd">@Transactional</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">registerUser</span><span class="o">(</span><span class="nc">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">sessionFactory</span><span class="o">.</span><span class="na">getCurrentSession</span><span class="o">().</span><span class="na">save</span><span class="o">(</span><span class="n">user</span><span class="o">);</span> // <b class="conum">(2)</b>
+    <span class="o">}</span>
+
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>The same SessionFactory as before</p>
+</li>
+<li>
+<p>But no more manual state management. Instead, getCurrentSession() and @Transactional are <em>in sync</em>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>How to get there?</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_the_hibernatetransactionmanager">Using the HibernateTransactionManager</h3>
+<div class="paragraph">
+<p>There is a very simple fix for this integration problem:</p>
+</div>
+<div class="paragraph">
+<p>Instead of using a <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jdbc/datasource/DataSourceTransactionManager.html">DataSourcePlatformTransactionManager</a> in your Spring configuration, you will be using a <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/orm/hibernate5/HibernateTransactionManager.html">HibernateTransactionManager</a> (if using plain Hibernate) or <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/orm/jpa/JpaTransactionManager.html">JpaTransactionManager</a> (if using Hibernate through JPA).</p>
+</div>
+<div class="paragraph">
+<p>The specialized HibernateTransactionManager will make sure to:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Manage transactions through Hibernate, i.e. the SessionFactory.</p>
+</li>
+<li>
+<p>Be smart enough to allow Spring to use that very same transaction in non-Hibernate, i.e. @Transactional Spring code.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>As always, a picture might be simpler to understand (though note, the flow between the proxy and real service is only conceptually right and oversimplified).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/images/document4.png" alt="document4" width="1260" height="336">
+</div>
+</div>
+<div class="paragraph">
+<p>That is, in a nutshell, how you integrate Spring and Hibernate.</p>
+</div>
+<div class="paragraph">
+<p>For other integrations or a more in-depth understanding, it helps to have a quick look at all possible <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/PlatformTransactionManager.html">PlatformTransactionManager</a> implementations that Spring offers.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_fin">Fin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By now, you should have a pretty good overview of how transaction management works with the Spring framework and how it also applies to other Spring libraries like Spring Boot or Spring WebMVC. The biggest takeaway should be, that it does not matter which framework you are using in the end, it is all about the JDBC basics.</p>
+</div>
+<div class="paragraph">
+<p>Get them right (Remember: <em>getConnection(). setAutocommit(false). commit().</em>) and you will have a much easier understanding of what happens later on in your complex, enterprise application.</p>
+</div>
+<div class="paragraph">
+<p>Thanks for reading.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_acknowledgements">Acknowledgements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Thanks to <a href="https://andreaseisele.com/">Andreas Eisele</a> for feedback on the early versions of this guide. Thanks to <a href="http://horsfield.de/">Ben Horsfield</a> for coming up with much-needed Javascript snippets to enhance this guide.</p>
+</div>
+</div>
+</div>
+
+
+                <div class="text-center pt-3 pb-4 px-2 my-5" style="background-color: rgba(230,235,241,.5)">
+                    <h4 class="fw-bold">There's more where that came from</h4>
+                    <p class="mt-0 pt-0 pl-5 pr-5" style="font-size: 0.9rem;">I'll send you an update when I
+                        publish new guides. Absolutely no spam, ever. Unsubscribe anytime.</p>
+
+
+                    <form action="https://sendy.marcobehler.com/subscribe" method="POST"
+                          accept-charset="utf-8"
+                          class="newsletterSignupForm justify-content-center form-inline">
+
+                        <input type="email" name="email" id="email" class="form-control w-50 d-inline-block"
+                               placeholder="e.g. martin@fowler.com" required>
+
+
+
+                        <div style="display:none;">
+                            <label for="hp">HP</label><br/>
+                            <input type="text" name="hp" id="hp"/>
+                        </div>
+                        <input type="hidden" name="list" value="6y1mPqI2ZsqrrbUPFriRDg"/>
+                        <input type="hidden" name="subform" value="yes"/>
+                        <input type="hidden" name="gdpr" value="checked"/>
+
+
+                        <button type="submit" class="btn btn-primary btn-large btn-round d-inline-block py-2">I want
+                            more!
+                        </button>
+
+                        <p class="g-recaptcha w-50 mt-3 d-inline-block" data-sitekey="6LcjVkgkAAAAAAqzg9OOBk-kInBkemeiaFAKSB9S"></p>
+
+                    </form>
+
+
+                </div>
+
+                
+
+                <div id="share-bottom">
+                    <h4 class="mt-5">Share</h4>
+                    <div class="shariff mb-5" data-twitter-via="MarcoBehler"
+                         data-lang="en"
+                         data-services="[&quot;twitter&quot;,&quot;facebook&quot;,&quot;linkedin&quot;,&quot;reddit&quot;]"
+                         data-orientation="horizontal" data-url="https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth"></div>
+                </div>
+
+                <h4 class="fw-bold mt-5">Comments</h4>
+
+                
+<div id="commento"></div>
+<script src="https://cdn.commento.io/js/commento.js" data-page-id="/guides/spring-transaction-management-unconventional-guide"> </script>
+
+            </div>
+            <div class="col-md-2">
+                <div class="p-2 d-none d-md-block sticky-top">
+
+                    <img src="https://www.marcobehler.com/images/marcobehler_2021_400-7f8ec2c6.jpg"
+                         class="w-50 rounded-circle border border-dark"/>
+                    <p class="mt-2 mb-2 fw-bold">let mut author = ?</p>
+                    <p style="font-size: 0.9rem; line-height: 1.3rem;" class="mb-2">
+                        I'm <a href="https://twitter.com/MarcoBehler" class="text-dark fw-bold"><u>@MarcoBehler</u></a>
+                        and I share everything I know about making awesome software through my <a
+                            href="/guides" class="text-dark fw-bold"><u>guides</u></a>, <a
+                            href="https://www.youtube.com/MarcoCodes"
+                            class="text-dark fw-bold"><u>screencasts</u></a>, <a
+                            href="https://youtu.be/xn9RNfDlIkE"
+                            class="text-dark fw-bold"><u>talks</u></a> and <a href="/courses"
+                                                                              class="text-dark fw-bold"><u>courses</u></a>.
+                    </p>
+                    <p style="font-size: 0.9rem; line-height: 1.3rem;">
+                        Follow me on <a href="https://twitter.com/MarcoBehler"
+                                        class="text-dark fw-bold"><u>Twitter</u></a> to find out
+                        what I'm currently working on.
+                    </p>
+
+                    <div class="shariff mb-2" data-twitter-via="MarcoBehler"
+                         data-lang="en"
+                         data-button-style="icon"
+                         data-services="[&quot;twitter&quot;,&quot;facebook&quot;,&quot;linkedin&quot;,&quot;reddit&quot;]"
+                         data-orientation="horizontal" data-url="https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth"></div>
+
+                    
+                        <script async type="text/javascript"
+                                src="//cdn.carbonads.com/carbon.js?serve=CESIC5QI&placement=wwwmarcobehlercom"
+                                id="_carbonads_js"></script>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </main>
+
+    <div class="container">
+        <footer class="py-3 my-4">
+            <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+                <li class="nav-item"><a href="/privacy" class="nav-link px-2 text-muted">Privacy & Terms</a></li>
+                <li class="nav-item"><a href="/imprint" class="nav-link px-2 text-muted">Imprint</a></li>
+                <li class="nav-item"><a href="/contact" class="nav-link px-2 text-muted">Contact</a></li>
+            </ul>
+            <p class="text-center text-muted">© 2021 Marco Behler GmbH</p>
+        </footer>
+    </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/shariff@3.3.0/dist/shariff.min.js"></script>
+
+<!--<script src="https://cdn.jsdelivr.net/npm/fslightbox@3.3.0-2/index.min.js"></script>-->
+<script src="https://cdn.commento.io/js/count.js"></script>
+
+
+
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+
+    <script type="application/javascript">
+
+        (function () {
+            function loadStargazersCount(linkSelector) {
+
+                const link = document.querySelector(linkSelector);
+                if (link == null || link.href == null) {
+                    return;
+                }
+
+                const repoUrl = new URL(link.href);
+                const repoPath = repoUrl.pathname.substring(1);
+
+                // GitHub API endpoint for the stargazers count
+                const apiUrl = `https://api.github.com/repos/${repoPath}`;
+
+                // Fetch the data from the GitHub API
+                fetch(apiUrl)
+                    .then(response => {
+                        // Check if the request was successful
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        else {
+                            return { "stargazers_count": 0};
+                        }
+                    })
+                    .then(data => {
+                        link.querySelector("span").innerHTML = data.stargazers_count;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching stargazers count:', error);
+                    });
+            }
+
+            loadStargazersCount('.github-button');
+        })();
+
+
+        var scrollToTop = function () {
+            window.scrollTo(0, 0);
+            return false;
+        }
+
+        var toggleVisible = function (item) {
+            if (item.style.display === 'none') {
+                return item.style.display = 'block';
+            } else {
+                return item.style.display = 'none';
+            }
+        };
+
+
+
+        // links that can toggle source code
+
+        let list = document.querySelectorAll('*[id^="solution"]');
+
+        for (let solutionSect of list) {
+            solutionSect.style.display = 'none'
+        }
+
+        let solutionLinks = document.querySelectorAll(".solution-link");
+
+        for (let link of solutionLinks) {
+            link.onclick = function (e) {
+                toggleVisible(e.target.parentElement.parentElement.nextElementSibling);
+                return false;
+            };
+        }
+
+        // lightbox for article images
+
+        let images = document.querySelectorAll(".sect1 img, .sect2 img, .sect3 img");
+        for (let image of images) {
+            var wrapper = document.createElement('a');
+            wrapper.setAttribute("data-fslightbox", "");
+            wrapper.href = image.src;
+            image.parentNode.insertBefore(wrapper, image);
+            wrapper.appendChild(image);
+        }
+        if (images.length > 0) {
+            refreshFsLightbox();
+        }
+
+
+    </script>
+
+    
+
+
+<script type="text/javascript">
+    (function () {
+
+        // change navbar according to login status
+	   if (document.cookie.match(/^(.*;)?\s*SESSION\s*=\s*[^;]+(.*)?$/)) {
+		  fetch('/loggedIn', {
+			 method: 'GET',
+			 headers: {
+				'Accept': 'application/json'
+			 }
+		  }).then(response => response.json())
+			 .then(data => {
+				if (data.loggedIn) {
+				    let loginLink = document.querySelector("header .text-end a");
+				    loginLink.textContent = "Account";
+				    loginLink.href = "/account";
+				}
+			 });
+	   }
+    })();
+</script>
+
+<script type="application/ld+json">[{
+  "@context": "http://schema.org",
+  "@type": "TechArticle",
+  "name": "Spring Transaction Management: @Transactional In-Depth",
+  "headline": "Spring Transaction Management: @Transactional In-Depth",
+  "description": "You can use this guide to get a simple and practical understanding of how Spring\u0027s transaction management with the @Transactional annotation works.",
+  "url": "https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth",
+  "mainEntityOfPage": "https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth",
+  "dateModified": "2022-06-03",
+  "datePublished": "2022-06-03",
+  "inLanguage": "en",
+  "isAccessibleForFree": "True",
+  "author": {
+    "@type": "Person",
+    "name": "Marco Behler"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "https://www.marcobehler.com/images/guides/undraw_blooming_jtv6-e3ef5753.png"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "url": "https://www.marcobehler.com",
+    "name": "Marco Behler GmbH",
+    "logo": "https://www.marcobehler.com/images/logo.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+49-89-215525840",
+      "contactOption": "TollFree",
+      "contactType": "customer service",
+      "availableLanguage": [
+        "English",
+        "German"
+      ]
+    },
+    "sameAs": [
+      "https://twitter.com/marcobehler",
+      "https://www.youtube.com/channel/UCufT4mqkeAss6qmI0OF5Bzw"
+    ]
+  }
+}, {
+  "@context": "http://schema.org",
+  "@type": "Organization",
+  "url": "https://www.marcobehler.com",
+  "name": "Marco Behler GmbH",
+  "logo": "https://www.marcobehler.com/images/logo.png",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+49-89-215525840",
+    "contactOption": "TollFree",
+    "contactType": "customer service",
+    "availableLanguage": [
+      "English",
+      "German"
+    ]
+  },
+  "sameAs": [
+    "https://twitter.com/marcobehler",
+    "https://www.youtube.com/channel/UCufT4mqkeAss6qmI0OF5Bzw"
+  ]
+}]</script>
+
+</body>
+</html>
+
+
